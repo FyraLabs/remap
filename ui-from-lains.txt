@@ -1,0 +1,17 @@
+Gtk.Box [horizontal]
+L Gtk.Box [vertical]
+  L He.AppBar
+    L show-right-title-buttons: false
+  L He.NavigationRail
+    L stack: my-stack
+L Gtk.Box [vertical]
+  L Gtk.Stack my-stack
+    L Gtk.Box [vertical]
+      L He.AppBar
+        L show-left-title-buttons: false
+        L viewtitle-widget: Gtk.Label
+          L label: <view title>
+      L <your view here>
+    L <more Gtk.Boxes here for the views>
+  L Gtk.Box
+    L <the three buttons here>
