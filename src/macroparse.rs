@@ -8,10 +8,6 @@ macro_rules! generate_expr_parser {
             Noop,
             $($enumid($($crate::generate_expr_parser!(@type $param)),*)),+
         }
-        fn is_valid_ident(s: &str) -> bool {
-            !s.contains(|c: char| !c.is_ascii_alphanumeric())
-                || s.len() == 1 && r#"`~!@#$%^&*()-_=+[]{}\|;:'",./<>?"#.contains(s)
-        }
         impl $KeydExpr {
             fn parse(s: &str) -> Res<Self> {
                 if is_valid_ident(s) {
@@ -38,7 +34,7 @@ macro_rules! generate_expr_parser {
     (@type macro) => { Macro };
     (@type timeout) => { u16 };
     (@type cmd) => { String };
-    (@type act) => { KeydExpr };
+    (@type act) => { Box<KeydExpr> };
     (@type $any:ident) => { compile_error!("Unknown $param {}", stringify!($any))};
     (@genparse layer $arg:ident) => {{
         if $arg.contains(|c: char| !c.is_ascii_alphanumeric()) {
@@ -67,6 +63,6 @@ macro_rules! generate_expr_parser {
         $arg.to_string()
     }};
     (@genparse act $arg:ident) => {{
-        KeydExpr::parse($arg)?
+        Box::new(KeydExpr::parse($arg)?)
     }};
 }

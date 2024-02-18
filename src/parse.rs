@@ -4,6 +4,11 @@ use std::{
     str::FromStr,
 };
 
+fn is_valid_ident(s: &str) -> bool {
+    !s.contains(|c: char| !c.is_ascii_alphanumeric())
+        || s.len() == 1 && r#"`~!@#$%^&*()-_=+[]{}\|;:'",./<>?"#.contains(s)
+}
+
 fn remove_wrap<'a>(s: &'a str, left: &'a str, right: &'a str) -> Option<&'a str> {
     (s.strip_prefix(left).and_then(|s| s.strip_suffix(right))).map(|s| s.trim())
 }
@@ -45,7 +50,7 @@ impl MacroToken {
         let [lefts @ .., last] = &s.split('-').collect::<Vec<_>>()[..] else {
             return None;
         };
-        if !KeydExpr::is_valid_ident(last) {
+        if !is_valid_ident(last) {
             return None;
         }
         // if let Some(x) = lefts.iter().find(|s| s.len() != 1 || !"ACMS".contains(s.chars().next().unwrap()))
@@ -66,13 +71,13 @@ impl std::str::FromStr for MacroToken {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if KeydExpr::is_valid_ident(s) {
+        if is_valid_ident(s) {
             return Ok(Self::Key(s.to_string()));
         }
         // TODO: try_into_combination
         // using `while` for `break`
         while let [lefts @ .., last] = &s.split('-').collect::<Vec<_>>()[..] {
-            if !KeydExpr::is_valid_ident(last) {
+            if !is_valid_ident(last) {
                 // return Err(ParseError::InvalidIdent(last.to_string()));
                 break;
             }
@@ -91,7 +96,7 @@ impl std::str::FromStr for MacroToken {
         }
         {
             let mut keys = s.split('+');
-            if keys.all(|k| KeydExpr::is_valid_ident(k)) {
+            if keys.all(|k| is_valid_ident(k)) {
                 return Ok(Self::Hold(keys.map(|s| s.to_string()).collect()));
             }
         }
@@ -145,7 +150,7 @@ pub fn parse_macro(arg: &str) -> Res<Macro> {
     Ok(macros)
 }
 
-crate::generate_expr_parser!(KeydExpr2;
+crate::generate_expr_parser!(KeydExpr;
     layer(1: layer: "") => Layer : ""
     oneshot(1: layer: "") => Oneshot : ""
     swap(1: layer: "") => Swap : ""
@@ -165,68 +170,12 @@ crate::generate_expr_parser!(KeydExpr2;
     command(1: cmd: "") => Command : ""
 );
 
-pub enum KeydExpr {
-    Key(String),
-    Layer(String),
-    Oneshot(String),
-    Swap(String),
-    SetLayout(String),
-    Clear,
-    Toggle(String),
-    Timeout(Box<Self>, u16, Box<Self>),
-}
-
-impl KeydExpr {
-    // FIXME: actually check if the keys actually exist
-    fn is_valid_ident(s: &str) -> bool {
-        !s.contains(|c: char| !c.is_ascii_alphanumeric())
-            || s.len() == 1 && r#"`~!@#$%^&*()-_=+[]{}\|;:'",./<>?"#.contains(s)
-    }
-    fn parse(s: &str) -> Res<Self> {
-        if Self::is_valid_ident(s) {
-            return Ok(Self::Key(s.to_string()));
-        }
-        macro_rules! action {
-            ($name:ident => $exprtype:ident) => {
-                if let Some($name) = remove_wrap(s, concat!(stringify!($name), "("), ")") {
-                    return if Self::is_valid_ident($name) {
-                        Ok(Self::$exprtype($name.to_string()))
-                    } else {
-                        Err(ParseError::InvalidIdent($name.to_string()))
-                    };
-                }
-            };
-        }
-        action!(layer => Layer);
-        action!(oneshot => Oneshot);
-        action!(swap => Swap);
-        action!(setlayout => SetLayout);
-        if remove_wrap(s, "clear(", ")").map_or(false, |s| s.trim().len() == 0) {
-            return Ok(Self::Clear);
-        }
-        action!(toggle => Toggle);
-        if let Some(stimeout) = remove_wrap(s, "timeout(", ")") {
-            return if let [act1, time, act2] = &*stimeout.split(',').collect::<Vec<_>>() {
-                let (act1, act2) = (Self::parse(act1.trim())?, Self::parse(act2.trim())?);
-                let time = time.trim();
-                Ok(Self::Timeout(Box::new(act1), time.parse()?, Box::new(act2)))
-            } else {
-                Err(ParseError::BadArgs(
-                    "timeout".to_string(),
-                    stimeout.to_string(),
-                ))
-            };
-        }
-
-        todo!()
-    }
-}
-
 pub enum KeydStatement {
     Star,
     SetId(String, String),
     UnsetId(String, String),
     Define(String, KeydExpr),
+    // TODO: includes?
 }
 
 impl KeydStatement {
