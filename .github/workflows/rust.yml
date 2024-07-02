@@ -14,4 +14,5 @@ jobs:
         ln -s /root $HOME
         dnf5 up -y
         dnf5 install -y --repofrompath 'terra,https://repos.fyralabs.com/terra40' --setopt='terra.gpgkey=https://repos.fyralabs.com/terra40/key.asc' terra-release
-        dnf5 install -y libhelium-devel tar
+        dnf5 install -y libhelium-devel tar rustup
+        rustup-init
