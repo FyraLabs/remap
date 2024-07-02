@@ -9,4 +9,4 @@ jobs:
     uses: FyraLabs/actions/.github/workflows/rust.yml@main
     with:
       test-container: '{"image": "registry.fedoraproject.org/fedora-minimal:rawhide"}'
-      test-pre: "dnf install --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' --setopt='terra.gpgkey=https://repos.fyralabs.com/terra$releasever/key.asc' terra-release && dnf install -y libhelium-devel"
+      test-pre: "dnf install --repofrompath 'terra,https://repos.fyralabs.com/terrarawhide' --setopt='terra.gpgkey=https://repos.fyralabs.com/terrarawhide/key.asc' terra-release && dnf install -y libhelium-devel"
