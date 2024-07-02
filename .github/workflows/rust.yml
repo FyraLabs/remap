@@ -10,4 +10,4 @@ jobs:
     with:
       test-container: '{"image": "ghcr.io/terrapkg/builder:f40"}'
       test-pre: |
-        dnf5 install -y libhelium-devel
+        dnf5 install -y libhelium-devel gcc
