@@ -7,3 +7,6 @@ on:
 jobs:
   rust:
     uses: FyraLabs/actions/.github/workflows/rust.yml@main
+    with:
+      container: '{"image": "registry.fedoraproject.org/fedora-minimal:f40"}'
+      test-pre: "dnf install --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' --setopt='terra.gpgkey=https://repos.fyralabs.com/terra$releasever/key.asc' terra-release && dnf install -y libhelium-devel"
