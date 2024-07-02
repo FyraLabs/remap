@@ -10,7 +10,8 @@ jobs:
     with:
       test-container: '{"image": "registry.fedoraproject.org/fedora-minimal:40"}'
       test-pre: |
+        mkdir -p /github
+        ln -s /root $HOME
         dnf5 up -y
         dnf5 install -y --repofrompath 'terra,https://repos.fyralabs.com/terra40' --setopt='terra.gpgkey=https://repos.fyralabs.com/terra40/key.asc' terra-release
         dnf5 install -y libhelium-devel tar
-        echo "PATH=$PATH:/root/.cargo/bin" >> $GITHUB_ENV
